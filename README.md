@@ -33,7 +33,7 @@ Geometry Dash 風の縦スクロールアクションゲーム。
 
 ```bash
 # リポジトリのクローン
-git clone <リポジトリURL>
+git clone https://github.com/KOGEM4ME/information_system_design
 cd information_system_design
 
 # 依存パッケージのインストール
