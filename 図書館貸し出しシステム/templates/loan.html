@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+<!--
+  loan.html  ―  貸出登録画面（職員用）
+  対応要求: FR-05（利用者IDと蔵書IDで貸出登録）
+            FR-07（返却期限の自動設定 = 貸出日 + 14日）
+
+  【発表用説明】
+  職員が利用者と本を選択して「貸出登録」ボタンを押すと、
+  app.py の loan() 関数が呼び出され、
+  models.loan_book() でデータベースに記録されます。
+-->
+
+{% block content %}
+<h2>貸出登録</h2>
+<p class="text-muted">職員が利用者と蔵書を選択して貸出登録を行います</p>
+
+<!--
+  method="POST" でフォームデータをサーバに送信
+  （GET だと URL にデータが露出するためPOSTを使う）
+-->
+<form method="POST" action="{{ url_for('loan') }}" class="col-md-6">
+
+  <!-- 利用者の選択（FR-05: 利用者IDの入力） -->
+  <div class="mb-3">
+    <label class="form-label fw-bold">利用者を選択</label>
+    <select name="member_id" class="form-select" required>
+      <option value="">― 利用者を選択してください ―</option>
+      {% for m in members %}
+        <option value="{{ m['member_id'] }}">
+          {{ m['member_id'] }}. {{ m['name'] }}（{{ m['email'] }}）
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- 蔵書の選択（FR-05: 蔵書IDの入力） -->
+  <div class="mb-3">
+    <label class="form-label fw-bold">貸し出す本を選択</label>
+    <select name="book_id" class="form-select" required>
+      <option value="">― 蔵書を選択してください ―</option>
+      {% for b in books %}
+        <option value="{{ b['book_id'] }}"
+          {% if b['available_copies'] == 0 %}disabled{% endif %}>
+          {{ b['book_id'] }}. 『{{ b['title'] }}』― {{ b['author'] }}
+          （在庫: {{ b['available_copies'] }}/{{ b['total_copies'] }}）
+        </option>
+      {% endfor %}
+    </select>
+    <div class="form-text">在庫0の本はグレーアウトされ選択できません</div>
+  </div>
+
+  <!--
+    返却期限は自動で設定される（FR-07）
+    利用者に「14日後が期限になります」と案内
+  -->
+  <div class="alert alert-info">
+    📅 返却期限は貸出日から <strong>14日後</strong> に自動設定されます（FR-07）
+  </div>
+
+  <button type="submit" class="btn btn-primary">貸出登録する</button>
+  <a href="{{ url_for('search') }}" class="btn btn-secondary ms-2">蔵書検索に戻る</a>
+</form>
+{% endblock %}

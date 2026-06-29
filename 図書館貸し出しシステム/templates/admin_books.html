@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+<!--
+  admin_books.html  ―  蔵書管理画面（管理者用）
+  対応要求: FR-15（蔵書の登録・編集・削除）
+
+  【発表用説明】
+  管理者がこの画面から蔵書を登録・削除できます。
+  フォームの送信は POST メソッドで app.py の admin_books() に送られます。
+-->
+
+{% block content %}
+<h2>蔵書管理（管理者）</h2>
+
+<!-- 新規蔵書登録フォーム -->
+<div class="card mb-4">
+  <div class="card-header bg-primary text-white fw-bold">新規蔵書登録（FR-15）</div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('admin_books') }}" class="row g-2">
+      <div class="col-md-2">
+        <input type="text" name="isbn" class="form-control" placeholder="ISBN">
+      </div>
+      <div class="col-md-3">
+        <input type="text" name="title" class="form-control" placeholder="書名 *" required>
+      </div>
+      <div class="col-md-2">
+        <input type="text" name="author" class="form-control" placeholder="著者 *" required>
+      </div>
+      <div class="col-md-2">
+        <input type="text" name="category" class="form-control" placeholder="カテゴリ">
+      </div>
+      <div class="col-md-1">
+        <input type="number" name="total_copies" class="form-control"
+               placeholder="冊数" value="1" min="1" required>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">登録</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 蔵書一覧 -->
+<h4>蔵書一覧（{{ books | length }} 件）</h4>
+<table class="table table-hover table-bordered">
+  <thead class="table-dark">
+    <tr>
+      <th>ID</th><th>ISBN</th><th>書名</th><th>著者</th>
+      <th>カテゴリ</th><th>総冊数</th><th>在庫</th><th>操作</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for b in books %}
+    <tr>
+      <td>{{ b["book_id"] }}</td>
+      <td>{{ b["isbn"] or "―" }}</td>
+      <td>{{ b["title"] }}</td>
+      <td>{{ b["author"] }}</td>
+      <td>{{ b["category"] or "―" }}</td>
+      <td>{{ b["total_copies"] }}</td>
+      <td>{{ b["available_copies"] }}</td>
+      <td>
+        <!-- 削除は POST で送信（GET だとリンクの誤クリックで消えてしまうため） -->
+        <form method="POST"
+              action="{{ url_for('delete_book', book_id=b['book_id']) }}"
+              onsubmit="return confirm('「{{ b['title'] }}」を削除しますか？')">
+          <button type="submit" class="btn btn-danger btn-sm">削除</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

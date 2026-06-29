@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--
+    viewport の設定 → スマートフォンでも正しく表示（NFR-03: レスポンシブ対応）
+    Bootstrap を CDN から読み込む（追加インストール不要）
+  -->
+  <title>図書館蔵書検索システム</title>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    /* サイト全体の最小フォントサイズを確保（NFR-05: 視認性） */
+    body { font-size: 16px; }
+    .navbar-brand { font-weight: bold; }
+    /* 貸出可能バッジの色 */
+    .badge-available { background-color: #198754; }
+    .badge-unavailable { background-color: #dc3545; }
+  </style>
+</head>
+<body>
+
+<!-- ナビゲーションバー：全ページ共通のメニュー -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="{{ url_for('index') }}">📚 図書館蔵書検索システム</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav me-auto">
+        <!-- 利用者向けメニュー -->
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('search') }}">蔵書検索</a>
+        </li>
+        <!-- 職員向けメニュー -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">職員メニュー</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for('loan') }}">貸出登録</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('return_book') }}">返却登録</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('overdue') }}">延滞一覧</a></li>
+          </ul>
+        </li>
+        <!-- 管理者向けメニュー -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">管理者メニュー</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for('admin_books') }}">蔵書管理</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('admin_members') }}">利用者管理</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <!--
+    flash メッセージの表示エリア
+    app.py で flash() した通知メッセージがここに表示される
+  -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- 各ページのコンテンツがここに入る（テンプレート継承） -->
+  {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+<!--
+  return.html  ―  返却登録画面（職員用）
+  対応要求: FR-06（蔵書IDを入力して返却登録）
+
+  【発表用説明】
+  返却処理では蔵書IDだけを受け取り、
+  models.return_book() が LOANS テーブルを更新します。
+  → returned_at に現在日時を記録し、available_copies を +1 します。
+-->
+
+{% block content %}
+<h2>返却登録</h2>
+<p class="text-muted">職員が返却された蔵書を選択して返却処理を行います</p>
+
+<form method="POST" action="{{ url_for('return_book') }}" class="col-md-6">
+
+  <div class="mb-3">
+    <label class="form-label fw-bold">返却する本を選択（FR-06）</label>
+    <select name="book_id" class="form-select" required>
+      <option value="">― 蔵書を選択してください ―</option>
+      {% for b in books %}
+        <!--
+          現在貸出中（available_copies < total_copies）の本だけ選択できるようにする
+          すでに全冊在庫ありの本は返却対象外
+        -->
+        <option value="{{ b['book_id'] }}"
+          {% if b['available_copies'] == b['total_copies'] %}disabled{% endif %}>
+          {{ b['book_id'] }}. 『{{ b['title'] }}』
+          （在庫: {{ b['available_copies'] }}/{{ b['total_copies'] }}）
+          {% if b['available_copies'] == b['total_copies'] %}― 貸出なし{% endif %}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-success">返却登録する</button>
+  <a href="{{ url_for('loan') }}" class="btn btn-secondary ms-2">貸出登録へ</a>
+</form>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+<!--
+  overdue.html  ―  延滞一覧画面（職員用）
+  対応要求: FR-12（延滞者の一覧：利用者名・蔵書名・延滞日数）
+
+  【発表用説明】
+  SQL の julianday() 関数で日付の差分（延滞日数）を計算しています。
+  延滞日数が多い順に表示することで、優先対応が必要な利用者を上に表示します。
+-->
+
+{% block content %}
+<h2>延滞一覧 <span class="badge bg-danger">{{ overdue_list | length }} 件</span></h2>
+<p class="text-muted">返却期限を過ぎた未返却の貸出を表示します（FR-12）</p>
+
+{% if overdue_list %}
+<table class="table table-hover table-bordered">
+  <thead class="table-danger">
+    <tr>
+      <th>利用者名</th>
+      <th>メールアドレス</th>
+      <th>書名</th>
+      <th>返却期限</th>
+      <th>延滞日数</th>
+      <th>状態</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in overdue_list %}
+    <tr class="{% if row['overdue_days'] >= 7 %}table-danger{% else %}table-warning{% endif %}">
+      <td>{{ row["member_name"] }}</td>
+      <td>{{ row["member_email"] }}</td>
+      <td>{{ row["book_title"] }}</td>
+      <td>{{ row["due_date"] }}</td>
+      <td><strong>{{ row["overdue_days"] | int }} 日</strong></td>
+      <td>
+        <!--
+          ビジネスルール: 7日以上延滞 → 貸出停止対象（FR-14相当）
+          赤背景の行が対象者
+        -->
+        {% if row["overdue_days"] >= 7 %}
+          <span class="badge bg-danger">貸出停止対象</span>
+        {% else %}
+          <span class="badge bg-warning text-dark">要督促</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<div class="alert alert-info mt-2">
+  ※ <strong>赤背景</strong>：延滞7日以上 → 次の貸出を停止（ビジネスルール）<br>
+  ※ <strong>黄背景</strong>：延滞7日未満 → 督促が必要
+</div>
+{% else %}
+  <div class="alert alert-success">現在、延滞中の貸出はありません。</div>
+{% endif %}
+{% endblock %}

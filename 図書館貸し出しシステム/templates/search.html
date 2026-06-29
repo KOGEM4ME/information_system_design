@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+<!--
+  search.html  ―  蔵書検索画面
+  対応要求: FR-01（書名・著者・キーワード検索）
+            FR-02（貸出状況のリアルタイム表示）
+            FR-03（AND検索による絞り込み）
+
+  【発表用説明】
+  Jinja2 テンプレートエンジンを使っています。
+  {{ 変数 }} で Python から渡したデータを埋め込み、
+  {% for %} {% if %} でループや条件分岐ができます。
+-->
+
+{% block content %}
+<h2>蔵書検索</h2>
+<p class="text-muted">書名・著者・カテゴリで絞り込めます（AND検索）</p>
+
+<!--
+  検索フォーム
+  method="GET" にすることで、検索条件が URL に含まれる
+  → URL を共有すれば同じ検索結果を見られる
+-->
+<form method="GET" action="{{ url_for('search') }}" class="mb-4">
+  <div class="row g-2">
+    <div class="col-md-4">
+      <input type="text" name="keyword" class="form-control"
+             placeholder="書名・ISBN" value="{{ keyword }}">
+    </div>
+    <div class="col-md-3">
+      <input type="text" name="author" class="form-control"
+             placeholder="著者名" value="{{ author }}">
+    </div>
+    <div class="col-md-3">
+      <input type="text" name="category" class="form-control"
+             placeholder="カテゴリ（例: 情報工学）" value="{{ category }}">
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-primary w-100">検索</button>
+    </div>
+  </div>
+</form>
+
+<!-- 検索結果の件数表示 -->
+<p>検索結果: <strong>{{ books | length }} 件</strong></p>
+
+{% if books %}
+<table class="table table-hover table-bordered">
+  <thead class="table-dark">
+    <tr>
+      <th>書名</th>
+      <th>著者</th>
+      <th>カテゴリ</th>
+      <th>ISBN</th>
+      <th>貸出状況（FR-02）</th>
+      <th>在庫</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!--
+      Jinja2 の for ループで蔵書リストを繰り返し表示
+      book は models.search_books() が返した辞書（sqlite3.Row）
+    -->
+    {% for book in books %}
+    <tr>
+      <td>{{ book["title"] }}</td>
+      <td>{{ book["author"] }}</td>
+      <td>{{ book["category"] or "―" }}</td>
+      <td>{{ book["isbn"] or "―" }}</td>
+      <td>
+        <!--
+          available_copies > 0 なら「貸出可能」、そうでなければ「貸出中」
+          これが FR-02「貸出状況のリアルタイム表示」の実装
+        -->
+        {% if book["available_copies"] > 0 %}
+          <span class="badge badge-available text-white">在庫あり</span>
+        {% else %}
+          <span class="badge badge-unavailable text-white">貸出中</span>
+        {% endif %}
+      </td>
+      <td>{{ book["available_copies"] }} / {{ book["total_copies"] }} 冊</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <div class="alert alert-warning">該当する蔵書が見つかりませんでした。</div>
+{% endif %}
+{% endblock %}
